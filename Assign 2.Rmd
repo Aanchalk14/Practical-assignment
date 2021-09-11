@@ -1,0 +1,341 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ 
+# **Part1 Formatting RMarkdown document**
+
+----------------------------------------------------------------------------------------------
+
+
+## *Aanchal Kohli*  
+
+## **s4651687**
+## **05/09/2021**
+
+------------------------------------------------------------------------------------
+
+
+
+![](C:\Users\aanch\Desktop\Practical-assignment\Pic.png)
+
+
+
+-------------------------------------------------------------------------------------
+
+# Assignment 2
+
+--------------------------------------------------------------------------------------------
+
+```{r, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(skimr)
+library(knitr)
+library(dplyr)
+```
+
+
+```{r}
+thanksgivingmeals <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv')
+```
+
+
+# **Part 2: Data Wrangling and visualization**
+
+-------------------------------------------------------------------------------------------------------------
+
+
+
+
+### 1. Display the first 10 rows of the dataset using RMarkdow
+
+```{r}
+knitr::kable(head(thanksgivingmeals[1:10, ], "pipe"))
+
+```
+
+
+
+### 2. Use `fct_reorder` and `parse_number` functions to create a factor variable `family_income`
+
+```{r}
+thanksgivingmeals%>%mutate (family_income = fct_reorder(family_income, parse_number(family_income)))
+```
+
+
+
+
+### 3. Generate the general statistics of the dataset using `summary()` and `skim()` function
+
+Summary is a general function that produces details of all the records/columns in a data set. Here, it basically represents the length, class, and mode for each column. 
+
+
+
+```{r}
+summary(thanksgivingmeals)
+```
+
+Skim function provides a broad overview of the variables in data frames, Tibbles, data tables, and vectors. It provides information in a different and more detailed way. It is used as an alternative to the summary function.
+
+```{r}
+skim(thanksgivingmeals)
+```
+
+
+### 4. What is the number of people who celebrate?
+
+The number of people who like to celebrate Thanksgiving is 980.
+
+
+```{r}
+thanksgivingmeals %>% 
+  count (celebrate, sort = TRUE)%>%
+  filter(celebrate =="Yes")%>%
+  kable()
+  
+```
+
+### 5. What are categories and stats for each main dish served and the method it is prepared?
+
+Both main dishes served (main_dish) and the method of preparing (main_prep) are character variables. 
+
+```{r}
+class(thanksgivingmeals$main_dish)
+class(thanksgivingmeals$main_prep)
+```
+
+
+From the below table we can see that what are the methods of preparing the particular main dishes and can also gauge the most common method of preparing a particular main dish. Here, have used the count function and arrange function to show the common ways how main dishes are prepared.
+```{r}
+thanksgivingmeals %>% count(main_dish, main_prep, sort=TRUE) %>%
+  arrange(desc(main_dish, n)) %>%
+  kable()
+  
+```
+
+
+### 6. Create a data viz showing this in the most evident way. Provide your own legend and use themes.
+
+The jitter graph is used to visualize the methods to prepare the main dishes. (Both main_dish and main_prep are discrete variables, hence used jitter graph to visualize). In the below graph we can see the frequency of how main dishes are been prepared. We can clearly see that the most common main dish is turkey and it is baked 422 times.
+
+
+```{r}
+thanksgivingmeals%>%
+  count (main_dish, main_prep, sort=TRUE) %>%
+   ggplot(aes(main_prep, n))+
+  geom_jitter()+ 
+  facet_wrap(~main_dish)+
+  coord_flip()+
+  geom_text(aes(label = round(n, 1)), size = 2, vjust = -1.25, colour = "blue") +
+  theme_test()+
+labs(x=" Prepration type ", y= "Frequency", title="Methods to prepare main dishes", caption="Image 1: Jitter")
+```
+
+### 7. How many use cranberry sauce? How many use gravy?
+
+There are 502 people who use canned cranberry while 301 uses homemade cranberry sauce. Out of the total 892 uses gravy in their dishes.
+
+```{r}
+thanksgivingmeals %>% count(cranberry, sort=TRUE) %>% kable()
+```
+
+```{r}
+thanksgivingmeals %>% count(gravy, sort=TRUE) %>% kable()
+
+```
+
+
+### 8. What is the distribution of those who celebrate across income 
+
+We can see that the highest number of people i.e 166 celebrate Thanksgiving are in the family income range between $25000 to $49,999.
+We have used the filter function to first remove the NA values from family income and filtered only those who like to celebrate. Then we have counted the number of people based on family income and those who celebrate thanksgiving and then reorder the information based on family income and the highest number of people who celebrate.
+
+
+
+```{r}
+thanksgivingmeals %>% 
+  filter (!is.na(family_income), celebrate=="Yes") %>% 
+  count (family_income, celebrate, sort = TRUE)%>%
+  mutate(family_income = fct_reorder (family_income, n)) %>% 
+  kable()
+```
+
+### 9. Present this information in the most evident way on the data viz.
+
+The best way to represent this information is Bar graph as one variable is continuous and the other is discrete. From this visualization, we can clearly see how many people like to celebrate thanksgiving based on family income.
+In the ggplot, have used coord_flip to show the bar horizontally just to give a neat presentation, so that the family income range can easily be read. And have used guides(fill ="none") as the index is not required in this graph.
+
+```{r}
+thanksgivingmeals %>% 
+  filter (!is.na(family_income), celebrate=="Yes") %>% 
+  count (family_income, celebrate, sort = TRUE) %>%
+  group_by(family_income) %>% 
+  ungroup() %>%
+  mutate(family_income = fct_reorder (family_income, n)) %>%
+  ggplot(aes(family_income, n, fill = family_income)) + 
+  geom_col() +
+  coord_flip()+
+  theme_bw() +
+  guides( fill ="none")+
+
+  
+ labs(x="Family Income range", y= "No. of people who celebrate Thanks giving", title="Celebration of thanks giving based on Income", caption="Image 2 - Bar graph")
+
+```
+
+
+### 10. What are the most common pies, sides, and desserts?
+
+```{r}
+pie <- thanksgivingmeals %>%
+  select(starts_with("pie"), -pie13) %>%
+  gather(type, value) %>%
+  count(type, value, sort = TRUE)  %>%
+  na.omit(value) %>%
+  filter(value !="None") %>%
+  filter(value != "Other (please specify)")
+   
+```
+
+```{r}
+side <- thanksgivingmeals %>%
+  select(starts_with("side"), -side15) %>%
+  gather(type, value) %>%
+  count(type, value, sort = TRUE)  %>%
+  na.omit(value) %>%
+  filter(value !="None") %>%
+  filter(value != "Other (please specify)")
+```
+
+```{r}
+dessert <- thanksgivingmeals %>%
+  select(starts_with("dessert"), -dessert12) %>%
+  gather(type, value) %>%
+  count(type, value, sort = TRUE)  %>%
+  na.omit(value) %>%
+  filter(value !="None") %>%
+  filter(value != "Other (please specify)")
+   
+```
+
+
+### 11. Present this information on a data viz
+
+```{r}
+new_combined <- rbind(pie, side, dessert)
+```
+
+```{r}
+
+pie %>%
+  group_by() %>% 
+  ungroup() %>%
+  mutate(value = fct_reorder (value, n))%>% 
+  ggplot(aes(value, n, fill=value)) +
+  geom_col()+
+  coord_flip()+
+  theme_get()+
+  guides( fill ="none")+
+  labs(x="Pie", y= "No. of people", title="Distribution of pie ordered", caption="Image 3.a - Bar graph")
+
+  
+```
+
+
+```{r}
+dessert%>%
+  
+  group_by() %>% 
+  ungroup() %>%
+  mutate(value = fct_reorder (value, n))%>% 
+  ggplot(aes(value, n, fill=value)) +
+  geom_col()+
+  coord_flip()+
+  theme_get()+
+  guides( fill ="none")+
+  labs(x="Dessert", y= "No. of people", title="Distribution of dessert ordered", caption="Image 3.b - Bar graph")
+ 
+```
+
+```{r}
+side%>%
+  
+  group_by() %>% 
+  ungroup() %>%
+  mutate(value = fct_reorder (value, n))%>% 
+  ggplot(aes(value, n, fill=value)) +
+  geom_col()+
+  coord_flip()+
+  theme_get()+
+  guides( fill ="none")+
+  labs(x="Sides", y= "No. of people", title="Distribution of Sides ordered", caption="Image 3.c - Bar graph")
+```
+
+### 13. How do the servings differ by income?
+
+The below table represents how many people order what type of the main dish based on their family income. 
+Here, have used the filter function to filter who celebrates and then filter out certain variables. Then have used the count function and arrange them according to the main dishes so that we can the highest number of people ordering the main dishes based on family income.
+
+```{r}
+thanksgivingmeals%>% 
+  filter(celebrate == "Yes")%>%
+  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
+  filter (!is.na(family_income)) %>%
+  count (main_dish, family_income) %>% 
+  arrange(desc(n)) %>% 
+  kable()
+
+```
+
+
+### 14. Present this information on a data viz.
+
+To visualize how serving differs by the income we have used bar graph and facet_wrap function. One can clearly see that turkey is the most common dish across all income ranges. Those who are in high 
+
+
+```{r}
+thanksgivingmeals%>% 
+  filter(celebrate == "Yes")%>%
+  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
+  filter (!is.na(family_income)) %>%
+  arrange(desc(main_dish, family_income)) %>% 
+  count (main_dish, family_income) %>%
+  arrange(desc(family_income))%>% 
+  ggplot(aes(main_dish, n, fill=main_dish))+
+  geom_col()+
+  facet_wrap(~family_income)+
+  coord_flip()+
+  theme_light() +
+  
+labs(x="  ", y="Number of people", title="Dishes ordered based on family income", caption="Image 4: Bar graph")
+```
+
+
+
+```{r}
+thanksgivingmeals%>% 
+  filter(celebrate == "Yes")%>%
+  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
+  filter (!is.na(family_income)) %>%
+  count (family_income) %>% 
+  arrange(desc(n)) %>% 
+  kable()
+```
+
+
+```{r}
+thanksgivingmeals%>% 
+  filter(celebrate == "Yes")%>%
+  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
+  filter (!is.na(family_income)) %>%
+  count (main_dish, family_income) %>% 
+  group_by(family_income) %>%
+  summarise(n = mean(n)) %>%
+ungroup() %>%
+  arrange(desc(n)) %>% 
+  kable()
+  
+```
+
