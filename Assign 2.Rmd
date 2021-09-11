@@ -188,6 +188,9 @@ thanksgivingmeals %>%
 
 ### 10. What are the most common pies, sides, and desserts?
 
+We have created 3 new data set which represents the most common pies, sides and dessert. 
+
+
 ```{r}
 pie <- thanksgivingmeals %>%
   select(starts_with("pie"), -pie13) %>%
@@ -310,32 +313,5 @@ thanksgivingmeals%>%
   theme_light() +
   
 labs(x="  ", y="Number of people", title="Dishes ordered based on family income", caption="Image 4: Bar graph")
-```
-
-
-
-```{r}
-thanksgivingmeals%>% 
-  filter(celebrate == "Yes")%>%
-  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
-  filter (!is.na(family_income)) %>%
-  count (family_income) %>% 
-  arrange(desc(n)) %>% 
-  kable()
-```
-
-
-```{r}
-thanksgivingmeals%>% 
-  filter(celebrate == "Yes")%>%
-  filter (main_dish != "None", main_dish != "Other (please specify)", main_dish != "I don't know")%>%
-  filter (!is.na(family_income)) %>%
-  count (main_dish, family_income) %>% 
-  group_by(family_income) %>%
-  summarise(n = mean(n)) %>%
-ungroup() %>%
-  arrange(desc(n)) %>% 
-  kable()
-  
 ```
 
