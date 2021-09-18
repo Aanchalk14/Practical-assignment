@@ -1,4 +1,7 @@
-
+title: "Assessment 2"
+author: " Aanchal"
+date: "01/09/2021"
+output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -16,13 +19,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ------------------------------------------------------------------------------------
 
-
-
-![](C:\Users\aanch\Desktop\Practical-assignment\Pic.png)
+<img src=https://raw.githubusercontent.com/Aanchalk14/Practical-assignment/main/Pic.png>
 
 
 
 -------------------------------------------------------------------------------------
+
 
 # Assignment 2
 
@@ -34,6 +36,7 @@ library(janitor)
 library(skimr)
 library(knitr)
 library(dplyr)
+
 ```
 
 
@@ -44,7 +47,9 @@ thanksgivingmeals <- read_csv('https://raw.githubusercontent.com/rfordatascience
 
 # **Part 2: Data Wrangling and visualization**
 
--------------------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------------------------------------
+
 
 
 
